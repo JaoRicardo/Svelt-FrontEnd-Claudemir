@@ -1,8 +1,13 @@
 <script lang="ts">
 	import logo from '$lib/imgs/logo_saomiguel - Copy.png';
+	import { apiFetch } from '$lib/api';
+	import { auth } from '$lib/stores/auth.svelte';
 
 	let cpf = $state('');
 	let senha = $state('');
+	let isLoading = $state(false);
+	let errorMessage = $state('');
+	let showPassword = $state(false);
 
 	function maskCpf(value: string) {
 		return value
@@ -18,9 +23,43 @@
 		cpf = maskCpf(target.value);
 	}
 
-	function handleSubmit(e: Event) {
+	async function handleSubmit(e: Event) {
 		e.preventDefault();
-		console.log('Tentativa de login:', { cpf, senha });
+		errorMessage = '';
+		isLoading = true;
+
+		// Remover a formatação do CPF, mantendo apenas números
+		const cleanCpf = cpf.replace(/\D/g, '');
+
+		try {
+			const response = await apiFetch('/login', {
+				method: 'POST',
+				body: JSON.stringify({
+					cpf: cleanCpf,
+					password: senha
+				})
+			});
+
+			const data = await response.json();
+
+			if (response.ok) {
+				// Sucesso
+				auth.setToken(data.token);
+				auth.user = data.data; // O Laravel resource retorna os dados em `data`
+				alert('Bem-Vindo!');
+			} else {
+				// Tratar erro (ex: 422 de validação)
+				errorMessage = data.message || 'Erro ao realizar login. Verifique suas credenciais.';
+				if (data.errors && data.errors.cpf) {
+					errorMessage = data.errors.cpf[0];
+				}
+			}
+		} catch (error) {
+			console.error('Erro na requisição:', error);
+			errorMessage = 'Erro de conexão com o servidor.';
+		} finally {
+			isLoading = false;
+		}
 	}
 </script>
 
@@ -38,6 +77,12 @@
 		<p class="subtitle">Faça login para ver os eventos do acampamento</p>
 
 		<form onsubmit={handleSubmit} class="login-form">
+			{#if errorMessage}
+				<div class="error-message">
+					{errorMessage}
+				</div>
+			{/if}
+
 			<div class="input-group">
 				<label for="cpf">CPF</label>
 				<input 
@@ -48,30 +93,78 @@
 					maxlength="14"
 					bind:value={cpf}
 					oninput={handleCpfInput}
+					disabled={isLoading}
 					required
 				/>
 			</div>
 
 			<div class="input-group">
 				<label for="senha">Senha</label>
-				<input 
-					type="password" 
-					id="senha" 
-					name="senha" 
-					placeholder="Digite sua senha" 
-					bind:value={senha}
-					required
-				/>
+				<div class="password-input-wrapper">
+					<input 
+						type={showPassword ? "text" : "password"}
+						id="senha" 
+						name="senha" 
+						placeholder="Digite sua senha" 
+						bind:value={senha}
+						disabled={isLoading}
+						required
+					/>
+					<button type="button" class="toggle-password" onclick={() => showPassword = !showPassword}>
+						{showPassword ? 'Ocultar' : 'Mostrar'}
+					</button>
+				</div>
 			</div>
 
-			<button type="submit" class="login-button">
-				Entrar
+			<button type="submit" class="login-button" disabled={isLoading}>
+				{#if isLoading}
+					Carregando...
+				{:else}
+					Entrar
+				{/if}
 			</button>
 		</form>
+
+		<div class="register-link">
+			<p>Não tem uma conta? <a href="/registro">Registre-se</a></p>
+		</div>
 	</div>
 </div>
 
 <style>
+	.register-link {
+		margin-top: 2rem;
+		text-align: center;
+		font-size: 0.9rem;
+		color: #666;
+	}
+
+	.register-link a {
+		color: #B69E55;
+		font-weight: 600;
+		text-decoration: none;
+	}
+
+	.register-link a:hover {
+		text-decoration: underline;
+	}
+
+	.error-message {
+		background-color: #ffebee;
+		color: #c62828;
+		padding: 0.75rem;
+		border-radius: 8px;
+		font-size: 0.875rem;
+		text-align: center;
+		border: 1px solid #ffcdd2;
+	}
+
+	.login-button:disabled {
+		background: #a5d6c8;
+		cursor: not-allowed;
+		transform: none;
+		box-shadow: none;
+	}
 	.login-container {
 		min-height: 100vh;
 		display: flex;
@@ -170,6 +263,34 @@
 		background: #ffffff;
 		border-color: #6FDEC2;
 		box-shadow: 0 0 0 4px rgba(111, 222, 194, 0.15);
+	}
+
+	.password-input-wrapper {
+		position: relative;
+		display: flex;
+		align-items: center;
+		width: 100%;
+	}
+
+	.password-input-wrapper input {
+		padding-right: 4.5rem;
+	}
+
+	.toggle-password {
+		position: absolute;
+		right: 1rem;
+		background: none;
+		border: none;
+		color: #6FDEC2;
+		font-size: 0.875rem;
+		font-weight: 600;
+		cursor: pointer;
+		padding: 0;
+	}
+
+	.toggle-password:hover {
+		color: #5bccae;
+		text-decoration: underline;
 	}
 
 	.actions {
