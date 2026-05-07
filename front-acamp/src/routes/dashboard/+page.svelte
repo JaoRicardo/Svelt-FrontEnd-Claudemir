@@ -5,13 +5,13 @@
 	$effect(() => {
 		// Se já terminou de carregar e não está autenticado, volta pro login
 		if (!auth.isLoading && !auth.isAuthenticated) {
-			window.location.href = '/';
+			window.location.href = '/login';
 		}
 	});
 
 	function handleLogout() {
 		auth.clearToken();
-		window.location.href = '/';
+		window.location.href = '/login';
 	}
 </script>
 

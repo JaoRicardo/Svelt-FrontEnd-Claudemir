@@ -1,47 +1,47 @@
 <script lang="ts">
-	import logo from '$lib/imgs/logo_saomiguel - Copy.png';
-	import { apiFetch } from '$lib/api';
+	import logo from "$lib/imgs/logo_saomiguel - Copy.png";
+	import { apiFetch } from "$lib/api";
 
 	let step = $state(1);
 	let isLoading = $state(false);
-	let errorMessage = $state('');
-	let successMessage = $state('');
+	let errorMessage = $state("");
+	let successMessage = $state("");
 
 	// Formulário
-	let name = $state('');
-	let cpf = $state('');
-	let birthday = $state('');
-	let sex = $state('');
-	let marital_status_id = $state('');
-	let email = $state('');
-	let phone = $state('');
-	let password = $state('');
-	let password_confirmation = $state('');
+	let name = $state("");
+	let cpf = $state("");
+	let birthday = $state("");
+	let sex = $state("");
+	let marital_status_id = $state("");
+	let email = $state("");
+	let phone = $state("");
+	let password = $state("");
+	let password_confirmation = $state("");
 
 	const maritalStatuses = [
-		{ id: 1, name: 'Solteiro' },
-		{ id: 2, name: 'Namorando' },
-		{ id: 3, name: 'União estável' },
-		{ id: 4, name: 'Casado' },
-		{ id: 5, name: 'Viúvo' },
-		{ id: 6, name: 'Separado' },
-		{ id: 7, name: 'Divorciado' },
-		{ id: 8, name: 'Segunda união' },
+		{ id: 1, name: "Solteiro" },
+		{ id: 2, name: "Namorando" },
+		{ id: 3, name: "União estável" },
+		{ id: 4, name: "Casado" },
+		{ id: 5, name: "Viúvo" },
+		{ id: 6, name: "Separado" },
+		{ id: 7, name: "Divorciado" },
+		{ id: 8, name: "Segunda união" },
 	];
 
 	function maskCpf(value: string) {
 		return value
-			.replace(/\D/g, '')
-			.replace(/(\d{3})(\d)/, '$1.$2')
-			.replace(/(\d{3})(\d)/, '$1.$2')
-			.replace(/(\d{3})(\d{1,2})/, '$1-$2')
-			.replace(/(-\d{2})\d+?$/, '$1');
+			.replace(/\D/g, "")
+			.replace(/(\d{3})(\d)/, "$1.$2")
+			.replace(/(\d{3})(\d)/, "$1.$2")
+			.replace(/(\d{3})(\d{1,2})/, "$1-$2")
+			.replace(/(-\d{2})\d+?$/, "$1");
 	}
 
 	function maskPhone(value: string) {
-		value = value.replace(/\D/g, '');
-		value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
-		value = value.replace(/(\d)(\d{4})$/, '$1-$2');
+		value = value.replace(/\D/g, "");
+		value = value.replace(/^(\d{2})(\d)/g, "($1) $2");
+		value = value.replace(/(\d)(\d{4})$/, "$1-$2");
 		return value.substring(0, 15);
 	}
 
@@ -56,36 +56,36 @@
 	}
 
 	function nextStep() {
-		errorMessage = '';
+		errorMessage = "";
 		if (!name || !cpf || !birthday || !sex || !marital_status_id) {
-			errorMessage = 'Por favor, preencha todos os campos desta etapa.';
+			errorMessage = "Por favor, preencha todos os campos desta etapa.";
 			return;
 		}
 		step = 2;
 	}
 
 	function prevStep() {
-		errorMessage = '';
+		errorMessage = "";
 		step = 1;
 	}
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
-		errorMessage = '';
+		errorMessage = "";
 
 		if (password !== password_confirmation) {
-			errorMessage = 'As senhas não coincidem.';
+			errorMessage = "As senhas não coincidem.";
 			return;
 		}
 
 		isLoading = true;
 
-		const cleanCpf = cpf.replace(/\D/g, '');
-		const cleanPhone = phone.replace(/\D/g, '');
+		const cleanCpf = cpf.replace(/\D/g, "");
+		const cleanPhone = phone.replace(/\D/g, "");
 
 		try {
-			const response = await apiFetch('/register', {
-				method: 'POST',
+			const response = await apiFetch("/register", {
+				method: "POST",
 				body: JSON.stringify({
 					name,
 					cpf: cleanCpf,
@@ -98,27 +98,27 @@
 					password_confirmation,
 					picture: "https://example.com/foto.jpg",
 					document: "https://example.com/documento.pdf",
-					is_counselor: false
-				})
+					is_counselor: false,
+				}),
 			});
 
 			const data = await response.json();
 
 			if (response.ok) {
-				successMessage = 'Conta criada com sucesso! Redirecionando...';
+				successMessage = "Conta criada com sucesso! Redirecionando...";
 				setTimeout(() => {
-					window.location.href = '/'; // Redireciona para o login
+					window.location.href = "/login";
 				}, 2000);
 			} else {
-				errorMessage = data.message || 'Erro ao realizar cadastro.';
+				errorMessage = data.message || "Erro ao realizar cadastro.";
 				if (data.errors) {
 					const firstErrorKey = Object.keys(data.errors)[0];
 					errorMessage = data.errors[firstErrorKey][0];
 				}
 			}
 		} catch (error) {
-			console.error('Erro na requisição:', error);
-			errorMessage = 'Erro de conexão com o servidor.';
+			console.error("Erro na requisição:", error);
+			errorMessage = "Erro de conexão com o servidor.";
 		} finally {
 			isLoading = false;
 		}
@@ -134,18 +134,22 @@
 		<div class="logo-wrapper">
 			<img src={logo} alt="Logo São Miguel" class="logo" />
 		</div>
-		
-		<h1 class="title">Criar Conta</h1>
-		<p class="subtitle">
-			{step === 1 ? 'Etapa 1: Seus dados básicos' : 'Etapa 2: Contato e segurança'}
-		</p>
 
+		<h1 class="title">Criar Conta</h1>
 		{#if successMessage}
 			<div class="success-message">
 				{successMessage}
 			</div>
 		{:else}
-			<form onsubmit={step === 2 ? handleSubmit : (e) => { e.preventDefault(); nextStep(); }} class="login-form">
+			<form
+				onsubmit={step === 2
+					? handleSubmit
+					: (e) => {
+							e.preventDefault();
+							nextStep();
+						}}
+				class="login-form"
+			>
 				{#if errorMessage}
 					<div class="error-message">
 						{errorMessage}
@@ -155,24 +159,46 @@
 				{#if step === 1}
 					<div class="input-group">
 						<label for="name">Nome Completo</label>
-						<input type="text" id="name" placeholder="Digite seu nome completo" bind:value={name} maxlength="255" required />
+						<input
+							type="text"
+							id="name"
+							placeholder="Digite seu nome completo"
+							bind:value={name}
+							maxlength="255"
+							required
+						/>
 					</div>
 
 					<div class="input-group">
 						<label for="cpf">CPF</label>
-						<input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" bind:value={cpf} oninput={handleCpfInput} required />
+						<input
+							type="text"
+							id="cpf"
+							placeholder="000.000.000-00"
+							maxlength="14"
+							bind:value={cpf}
+							oninput={handleCpfInput}
+							required
+						/>
 					</div>
 
 					<div class="input-group">
 						<label for="birthday">Data de Nascimento</label>
-						<input type="date" id="birthday" bind:value={birthday} required />
+						<input
+							type="date"
+							id="birthday"
+							bind:value={birthday}
+							required
+						/>
 					</div>
 
 					<div class="row-group">
 						<div class="input-group flex-1">
 							<label for="sex">Sexo</label>
 							<select id="sex" bind:value={sex} required>
-								<option value="" disabled selected>Selecione</option>
+								<option value="" disabled selected
+									>Selecione</option
+								>
 								<option value="M">Masculino</option>
 								<option value="F">Feminino</option>
 							</select>
@@ -180,10 +206,18 @@
 
 						<div class="input-group flex-1">
 							<label for="marital_status_id">Estado Civil</label>
-							<select id="marital_status_id" bind:value={marital_status_id} required>
-								<option value="" disabled selected>Selecione</option>
+							<select
+								id="marital_status_id"
+								bind:value={marital_status_id}
+								required
+							>
+								<option value="" disabled selected
+									>Selecione</option
+								>
 								{#each maritalStatuses as status}
-									<option value={status.id}>{status.name}</option>
+									<option value={status.id}
+										>{status.name}</option
+									>
 								{/each}
 							</select>
 						</div>
@@ -195,29 +229,66 @@
 				{:else if step === 2}
 					<div class="input-group">
 						<label for="email">E-mail</label>
-						<input type="email" id="email" placeholder="seu@email.com" bind:value={email} required />
+						<input
+							type="email"
+							id="email"
+							placeholder="seu@email.com"
+							bind:value={email}
+							required
+						/>
 					</div>
 
 					<div class="input-group">
 						<label for="phone">Telefone</label>
-						<input type="text" id="phone" placeholder="(00) 00000-0000" bind:value={phone} oninput={handlePhoneInput} maxlength="15" required />
+						<input
+							type="text"
+							id="phone"
+							placeholder="(00) 00000-0000"
+							bind:value={phone}
+							oninput={handlePhoneInput}
+							maxlength="15"
+							required
+						/>
 					</div>
 
 					<div class="input-group">
 						<label for="password">Senha</label>
-						<input type="password" id="password" placeholder="Crie uma senha" bind:value={password} required />
+						<input
+							type="password"
+							id="password"
+							placeholder="Crie uma senha"
+							bind:value={password}
+							required
+						/>
 					</div>
 
 					<div class="input-group">
-						<label for="password_confirmation">Confirmar Senha</label>
-						<input type="password" id="password_confirmation" placeholder="Confirme sua senha" bind:value={password_confirmation} required />
+						<label for="password_confirmation"
+							>Confirmar Senha</label
+						>
+						<input
+							type="password"
+							id="password_confirmation"
+							placeholder="Confirme sua senha"
+							bind:value={password_confirmation}
+							required
+						/>
 					</div>
 
 					<div class="button-group">
-						<button type="button" class="login-button secondary" onclick={prevStep} disabled={isLoading}>
+						<button
+							type="button"
+							class="login-button secondary"
+							onclick={prevStep}
+							disabled={isLoading}
+						>
 							Voltar
 						</button>
-						<button type="submit" class="login-button" disabled={isLoading}>
+						<button
+							type="submit"
+							class="login-button"
+							disabled={isLoading}
+						>
 							{#if isLoading}
 								Enviando...
 							{:else}
@@ -228,10 +299,10 @@
 				{/if}
 			</form>
 		{/if}
-		
+
 		{#if !successMessage}
 			<div class="login-link">
-				<p>Já tem uma conta? <a href="/">Faça login</a></p>
+				<p>Caso tenha conta <a href="/login">Faça login</a></p>
 			</div>
 		{/if}
 	</div>
@@ -244,8 +315,16 @@
 		align-items: center;
 		justify-content: center;
 		background: #ffffff;
-		background: radial-gradient(circle at top right, rgba(111, 222, 194, 0.08), transparent 40%),
-					radial-gradient(circle at bottom left, rgba(182, 158, 85, 0.06), transparent 40%);
+		background: radial-gradient(
+				circle at top right,
+				rgba(111, 222, 194, 0.08),
+				transparent 40%
+			),
+			radial-gradient(
+				circle at bottom left,
+				rgba(182, 158, 85, 0.06),
+				transparent 40%
+			);
 	}
 
 	.login-card {
@@ -254,10 +333,13 @@
 		max-width: 480px;
 		padding: 3rem 2.5rem;
 		border-radius: 24px;
-		box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05), 
-					0 1px 3px rgba(0, 0, 0, 0.02);
+		box-shadow:
+			0 10px 40px rgba(0, 0, 0, 0.05),
+			0 1px 3px rgba(0, 0, 0, 0.02);
 		border: 1px solid rgba(182, 158, 85, 0.15);
-		transition: transform 0.3s ease, box-shadow 0.3s ease;
+		transition:
+			transform 0.3s ease,
+			box-shadow 0.3s ease;
 		margin: 2rem;
 	}
 
@@ -316,7 +398,8 @@
 		color: #4a4a4a;
 	}
 
-	input, select {
+	input,
+	select {
 		width: 100%;
 		padding: 0.875rem 1rem;
 		font-size: 1rem;
@@ -333,9 +416,10 @@
 		color: #a0a0a0;
 	}
 
-	input:focus, select:focus {
+	input:focus,
+	select:focus {
 		background: #ffffff;
-		border-color: #6FDEC2;
+		border-color: #6fdec2;
 		box-shadow: 0 0 0 4px rgba(111, 222, 194, 0.15);
 	}
 
@@ -351,7 +435,7 @@
 		font-size: 1rem;
 		font-weight: 600;
 		color: #ffffff;
-		background: #6FDEC2;
+		background: #6fdec2;
 		border: none;
 		border-radius: 12px;
 		cursor: pointer;
@@ -410,7 +494,7 @@
 	}
 
 	.login-link a {
-		color: #B69E55;
+		color: #b69e55;
 		font-weight: 600;
 		text-decoration: none;
 	}

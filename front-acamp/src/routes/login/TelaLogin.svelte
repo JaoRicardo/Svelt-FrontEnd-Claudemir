@@ -1,21 +1,21 @@
 <script lang="ts">
-	import logo from '$lib/imgs/logo_saomiguel - Copy.png';
-	import { apiFetch } from '$lib/api';
-	import { auth } from '$lib/stores/auth.svelte';
+	import logo from "$lib/imgs/logo_saomiguel - Copy.png";
+	import { apiFetch } from "$lib/api";
+	import { auth } from "$lib/stores/auth.svelte";
 
-	let cpf = $state('');
-	let senha = $state('');
+	let cpf = $state("");
+	let senha = $state("");
 	let isLoading = $state(false);
-	let errorMessage = $state('');
+	let errorMessage = $state("");
 	let showPassword = $state(false);
 
 	function maskCpf(value: string) {
 		return value
-			.replace(/\D/g, '')
-			.replace(/(\d{3})(\d)/, '$1.$2')
-			.replace(/(\d{3})(\d)/, '$1.$2')
-			.replace(/(\d{3})(\d{1,2})/, '$1-$2')
-			.replace(/(-\d{2})\d+?$/, '$1');
+			.replace(/\D/g, "")
+			.replace(/(\d{3})(\d)/, "$1.$2")
+			.replace(/(\d{3})(\d)/, "$1.$2")
+			.replace(/(\d{3})(\d{1,2})/, "$1-$2")
+			.replace(/(-\d{2})\d+?$/, "$1");
 	}
 
 	function handleCpfInput(e: Event) {
@@ -25,38 +25,37 @@
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
-		errorMessage = '';
+		errorMessage = "";
 		isLoading = true;
 
-		// Remover a formatação do CPF, mantendo apenas números
-		const cleanCpf = cpf.replace(/\D/g, '');
+		const cleanCpf = cpf.replace(/\D/g, "");
 
 		try {
-			const response = await apiFetch('/login', {
-				method: 'POST',
+			const response = await apiFetch("/login", {
+				method: "POST",
 				body: JSON.stringify({
 					cpf: cleanCpf,
-					password: senha
-				})
+					password: senha,
+				}),
 			});
 
 			const data = await response.json();
 
 			if (response.ok) {
-				// Sucesso
 				auth.setToken(data.token);
-				auth.user = data.data || data; // O Laravel resource retorna os dados em `data` ou no objeto raiz
-				window.location.href = '/dashboard';
+				auth.user = data.data || data;
+				window.location.href = "/dashboard";
 			} else {
-				// Tratar erro (ex: 422 de validação)
-				errorMessage = data.message || 'Erro ao realizar login. Verifique suas credenciais.';
+				errorMessage =
+					data.message ||
+					"Erro ao realizar login. Verifique suas credenciais.";
 				if (data.errors && data.errors.cpf) {
 					errorMessage = data.errors.cpf[0];
 				}
 			}
 		} catch (error) {
-			console.error('Erro na requisição:', error);
-			errorMessage = 'Erro de conexão com o servidor.';
+			console.error("Erro na requisição:", error);
+			errorMessage = "Erro de conexão com o servidor.";
 		} finally {
 			isLoading = false;
 		}
@@ -72,7 +71,7 @@
 		<div class="logo-wrapper">
 			<img src={logo} alt="Logo São Miguel" class="logo" />
 		</div>
-		
+
 		<h1 class="title">Bem-vindo(a)</h1>
 		<p class="subtitle">Faça login para ver os eventos do acampamento</p>
 
@@ -85,11 +84,11 @@
 
 			<div class="input-group">
 				<label for="cpf">CPF</label>
-				<input 
-					type="text" 
-					id="cpf" 
-					name="cpf" 
-					placeholder="000.000.000-00" 
+				<input
+					type="text"
+					id="cpf"
+					name="cpf"
+					placeholder="000.000.000-00"
 					maxlength="14"
 					bind:value={cpf}
 					oninput={handleCpfInput}
@@ -101,17 +100,21 @@
 			<div class="input-group">
 				<label for="senha">Senha</label>
 				<div class="password-input-wrapper">
-					<input 
+					<input
 						type={showPassword ? "text" : "password"}
-						id="senha" 
-						name="senha" 
-						placeholder="Digite sua senha" 
+						id="senha"
+						name="senha"
+						placeholder="Digite sua senha"
 						bind:value={senha}
 						disabled={isLoading}
 						required
 					/>
-					<button type="button" class="toggle-password" onclick={() => showPassword = !showPassword}>
-						{showPassword ? 'Ocultar' : 'Mostrar'}
+					<button
+						type="button"
+						class="toggle-password"
+						onclick={() => (showPassword = !showPassword)}
+					>
+						{showPassword ? "Ocultar" : "Mostrar"}
 					</button>
 				</div>
 			</div>
@@ -126,7 +129,7 @@
 		</form>
 
 		<div class="register-link">
-			<p>Não tem uma conta? <a href="/registro">Registre-se</a></p>
+			<p>Registre-se <a href="/registro">aqui</a>!</p>
 		</div>
 	</div>
 </div>
@@ -140,7 +143,7 @@
 	}
 
 	.register-link a {
-		color: #B69E55;
+		color: #b69e55;
 		font-weight: 600;
 		text-decoration: none;
 	}
@@ -171,8 +174,16 @@
 		align-items: center;
 		justify-content: center;
 		background: #ffffff;
-		background: radial-gradient(circle at top right, rgba(111, 222, 194, 0.08), transparent 40%),
-					radial-gradient(circle at bottom left, rgba(182, 158, 85, 0.06), transparent 40%);
+		background: radial-gradient(
+				circle at top right,
+				rgba(111, 222, 194, 0.08),
+				transparent 40%
+			),
+			radial-gradient(
+				circle at bottom left,
+				rgba(182, 158, 85, 0.06),
+				transparent 40%
+			);
 	}
 
 	.login-card {
@@ -181,15 +192,19 @@
 		max-width: 420px;
 		padding: 3rem 2.5rem;
 		border-radius: 24px;
-		box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05), 
-					0 1px 3px rgba(0, 0, 0, 0.02);
+		box-shadow:
+			0 10px 40px rgba(0, 0, 0, 0.05),
+			0 1px 3px rgba(0, 0, 0, 0.02);
 		border: 1px solid rgba(182, 158, 85, 0.15);
-		transition: transform 0.3s ease, box-shadow 0.3s ease;
+		transition:
+			transform 0.3s ease,
+			box-shadow 0.3s ease;
 	}
 
 	.login-card:hover {
-		box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08), 
-					0 2px 5px rgba(0, 0, 0, 0.04);
+		box-shadow:
+			0 15px 50px rgba(0, 0, 0, 0.08),
+			0 2px 5px rgba(0, 0, 0, 0.04);
 	}
 
 	.logo-wrapper {
@@ -261,7 +276,7 @@
 
 	input:focus {
 		background: #ffffff;
-		border-color: #6FDEC2;
+		border-color: #6fdec2;
 		box-shadow: 0 0 0 4px rgba(111, 222, 194, 0.15);
 	}
 
@@ -281,7 +296,7 @@
 		right: 1rem;
 		background: none;
 		border: none;
-		color: #6FDEC2;
+		color: #6fdec2;
 		font-size: 0.875rem;
 		font-weight: 600;
 		cursor: pointer;
@@ -301,7 +316,7 @@
 
 	.forgot-password {
 		font-size: 0.875rem;
-		color: #B69E55;
+		color: #b69e55;
 		text-decoration: none;
 		font-weight: 600;
 		transition: color 0.2s ease;
@@ -319,7 +334,7 @@
 		font-size: 1rem;
 		font-weight: 600;
 		color: #ffffff;
-		background: #6FDEC2;
+		background: #6fdec2;
 		border: none;
 		border-radius: 12px;
 		cursor: pointer;
@@ -338,9 +353,9 @@
 	.login-button:active {
 		transform: translateY(0);
 	}
-	
+
 	.login-button:focus-visible {
-		outline: 2px solid #B69E55;
+		outline: 2px solid #b69e55;
 		outline-offset: 2px;
 	}
 </style>
