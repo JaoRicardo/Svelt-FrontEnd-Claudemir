@@ -45,8 +45,8 @@
 			if (response.ok) {
 				// Sucesso
 				auth.setToken(data.token);
-				auth.user = data.data; // O Laravel resource retorna os dados em `data`
-				alert('Bem-Vindo!');
+				auth.user = data.data || data; // O Laravel resource retorna os dados em `data` ou no objeto raiz
+				window.location.href = '/dashboard';
 			} else {
 				// Tratar erro (ex: 422 de validação)
 				errorMessage = data.message || 'Erro ao realizar login. Verifique suas credenciais.';
