@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import logo from "$lib/imgs/logo_saomiguel - Copy.png";
 	import { apiFetch } from "$lib/api";
 	import { goto } from "$app/navigation";
@@ -19,16 +20,19 @@
 	let password = $state("");
 	let password_confirmation = $state("");
 
-	const maritalStatuses = [
-		{ id: 1, name: "Solteiro" },
-		{ id: 2, name: "Namorando" },
-		{ id: 3, name: "União estável" },
-		{ id: 4, name: "Casado" },
-		{ id: 5, name: "Viúvo" },
-		{ id: 6, name: "Separado" },
-		{ id: 7, name: "Divorciado" },
-		{ id: 8, name: "Segunda união" },
-	];
+	let maritalStatuses: {id: number, name: string}[] = $state([]);
+
+	onMount(async () => {
+		try {
+			const response = await apiFetch("/marital-statuses");
+			if (response.ok) {
+				const resData = await response.json();
+				maritalStatuses = resData.data || [];
+			}
+		} catch (error) {
+			console.error("Erro ao carregar estados civis", error);
+		}
+	});
 
 	function cpfMask(node: HTMLInputElement) {
 		function handleInput() {
