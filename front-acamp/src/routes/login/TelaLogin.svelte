@@ -2,26 +2,36 @@
 	import logo from "$lib/imgs/logo_saomiguel - Copy.png";
 	import { apiFetch } from "$lib/api";
 	import { auth } from "$lib/stores/auth.svelte";
+	import { goto } from "$app/navigation";
+
+	interface LoginResponse {
+		token?: string;
+		data?: any;
+		message?: string;
+		errors?: {
+			cpf?: string[];
+		};
+	}
 
 	let cpf = $state("");
 	let senha = $state("");
 	let isLoading = $state(false);
 	let errorMessage = $state("");
 	let showPassword = $state(false);
-	let rememberMe = $state(false);
 
-	function maskCpf(value: string) {
-		return value
-			.replace(/\D/g, "")
-			.replace(/(\d{3})(\d)/, "$1.$2")
-			.replace(/(\d{3})(\d)/, "$1.$2")
-			.replace(/(\d{3})(\d{1,2})/, "$1-$2")
-			.replace(/(-\d{2})\d+?$/, "$1");
-	}
-
-	function handleCpfInput(e: Event) {
-		const target = e.target as HTMLInputElement;
-		cpf = maskCpf(target.value);
+	function cpfMask(node: HTMLInputElement) {
+		function handleInput() {
+			let value = node.value.replace(/\D/g, "");
+			value = value.replace(/(\d{3})(\d)/, "$1.$2");
+			value = value.replace(/(\d{3})(\d)/, "$1.$2");
+			value = value.replace(/(\d{3})(\d{1,2})/, "$1-$2");
+			node.value = value.replace(/(-\d{2})\d+?$/, "$1");
+			cpf = node.value;
+		}
+		node.addEventListener('input', handleInput);
+		return {
+			destroy() { node.removeEventListener('input', handleInput); }
+		};
 	}
 
 	async function handleSubmit(e: Event) {
@@ -40,12 +50,12 @@
 				}),
 			});
 
-			const data = await response.json();
+			const data: LoginResponse = await response.json();
 
 			if (response.ok) {
-				auth.setToken(data.token);
+				auth.setToken(data.token!);
 				auth.user = data.data || data;
-				window.location.href = "/dashboard";
+				await goto("/dashboard");
 			} else {
 				errorMessage =
 					data.message ||
@@ -75,7 +85,7 @@
 
 			<form onsubmit={handleSubmit} class="login-form">
 				{#if errorMessage}
-					<div class="error-message">
+					<div class="error-message" role="alert" aria-live="assertive">
 						{errorMessage}
 					</div>
 				{/if}
@@ -89,8 +99,9 @@
 						placeholder="Digite seu CPF"
 						maxlength="14"
 						bind:value={cpf}
-						oninput={handleCpfInput}
+						use:cpfMask
 						disabled={isLoading}
+						aria-invalid={errorMessage ? "true" : undefined}
 						required
 					/>
 				</div>
@@ -105,6 +116,7 @@
 							placeholder="Sua senha secreta"
 							bind:value={senha}
 							disabled={isLoading}
+							aria-invalid={errorMessage ? "true" : undefined}
 							required
 						/>
 						<button
@@ -116,14 +128,6 @@
 							{showPassword ? "Ocultar" : "Mostrar"}
 						</button>
 					</div>
-				</div>
-
-				<div class="form-options">
-					<label class="remember-me">
-						<input type="checkbox" bind:checked={rememberMe} />
-						Lembrar de mim
-					</label>
-					<a href="/esqueci-senha" class="forgot-password">Esqueceu a Senha?</a>
 				</div>
 
 				<button type="submit" class="login-button" disabled={isLoading}>
@@ -146,7 +150,6 @@
 </div>
 
 <style>
-	/* Acessibility: Hide label visually but keep for screen readers */
 	.sr-only {
 		position: absolute;
 		width: 1px;
@@ -163,7 +166,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: #f4f7f6; /* Soft neutral background to make card pop */
+		background: #f4f7f6;
 		padding: 1rem;
 	}
 
@@ -180,7 +183,7 @@
 
 	.login-left {
 		flex: 1;
-		background: #6fdec2; /* Primary teal color */
+		background: #6fdec2;
 		padding: 3.5rem 3rem;
 		display: flex;
 		flex-direction: column;
@@ -269,9 +272,8 @@
 	}
 
 	.password-input-wrapper input {
-		/* Add padding right to avoid text overlapping the toggle button */
 		padding-right: 4.5rem;
-		padding-left: 4.5rem; /* Balance centering */
+		padding-left: 4.5rem;
 	}
 
 	.toggle-password {
@@ -291,39 +293,6 @@
 	
 	.toggle-password:hover {
 		color: #5bccae;
-	}
-
-	.form-options {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		font-size: 0.9rem;
-		margin-top: -0.5rem;
-	}
-
-	.remember-me {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		cursor: pointer;
-	}
-
-	.remember-me input[type="checkbox"] {
-		width: 16px;
-		height: 16px;
-		accent-color: #b69e55;
-		cursor: pointer;
-	}
-
-	.forgot-password {
-		color: #ffffff;
-		text-decoration: none;
-		transition: opacity 0.2s;
-	}
-
-	.forgot-password:hover {
-		text-decoration: underline;
-		opacity: 0.9;
 	}
 
 	.login-button {
@@ -378,7 +347,6 @@
 		filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.08));
 	}
 
-	/* Responsive Design */
 	@media (max-width: 768px) {
 		.login-card {
 			flex-direction: column;
@@ -387,7 +355,7 @@
 		}
 
 		.login-right {
-			display: none; /* Hide illustration side on mobile to save space */
+			display: none;
 		}
 
 		.login-left {
