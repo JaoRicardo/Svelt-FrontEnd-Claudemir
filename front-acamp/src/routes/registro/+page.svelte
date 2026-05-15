@@ -20,7 +20,7 @@
 	let password = $state("");
 	let password_confirmation = $state("");
 
-	let maritalStatuses: {id: number, name: string}[] = $state([]);
+	let maritalStatuses: {id: number, title: string}[] = $state([]);
 
 	onMount(async () => {
 		try {
@@ -225,7 +225,7 @@
 								>
 									<option value="" disabled selected>Estado Civil</option>
 									{#each maritalStatuses as status}
-										<option value={status.id}>{status.name}</option>
+										<option value={status.id}>{status.title}</option>
 									{/each}
 								</select>
 							</div>
